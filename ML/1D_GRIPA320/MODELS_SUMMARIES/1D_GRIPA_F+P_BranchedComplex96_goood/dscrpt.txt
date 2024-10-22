@@ -1,0 +1,107 @@
+def build_SeparatedEASYmodel(F_input_shape, P_input_shape):
+    force_input = Input(shape=F_input_shape, name='force_input')
+    Fbranch1 = Sequential()
+    Fbranch1.add(Conv1D(64, kernel_size=40, strides=8, activation='relu', input_shape=F_input_shape))
+    Fbranch1.add(MaxPooling1D(pool_size=2))
+    Fbranch1.add(Conv1D(128, kernel_size=20, strides=2, activation='relu'))
+    Fbranch1.add(MaxPooling1D(pool_size=2))
+    Fbranch1.add(Conv1D(256, kernel_size=4, activation='relu'))
+    Fbranch1.add(GlobalMaxPooling1D())
+    Fbranch1.add(Dense(128, activation='relu'))
+    Fbranch1.add(Dropout(0.2))
+    Fbranch1.add(Dense(64, activation='relu'))
+    outF1 = Fbranch1(force_input)
+
+    Fbranch2 = Sequential()
+    Fbranch2.add(Conv1D(128, kernel_size=2,  activation='relu', input_shape=F_input_shape))
+    Fbranch2.add(MaxPooling1D(pool_size=2))
+    Fbranch2.add(Conv1D(64, kernel_size=8, strides=2, activation='relu'))
+    Fbranch2.add(MaxPooling1D(pool_size=2))
+    Fbranch2.add(Conv1D(128, kernel_size=4, activation='relu'))
+    Fbranch2.add(Conv1D(64, kernel_size=2, activation='relu'))
+    Fbranch2.add(GlobalMaxPooling1D())
+    Fbranch2.add(Dropout(0.1))
+    Fbranch2.add(Dense(64, activation='relu'))
+    outF2 = Fbranch2(force_input)
+    
+    pose_input = Input(shape=F_input_shape, name='pose_input')
+    Pbranch = Sequential()
+    Pbranch.add(Conv1D(64, kernel_size=40, strides=10, activation='relu', input_shape=P_input_shape))
+    Pbranch.add(MaxPooling1D(pool_size=2))
+    Pbranch.add(Conv1D(64, kernel_size=10, activation='relu'))
+    Pbranch.add(MaxPooling1D(pool_size=2))
+    Pbranch.add(Flatten())
+    Pbranch.add(Dense(16, activation='relu'))
+    outP = Pbranch(pose_input)
+    
+    merged = concatenate([outF1, outF2, outP])
+    merged = Dropout(0.1)(merged)
+    merged = Dense(64, activation='relu')(merged)
+    merged = Dense(1, activation='sigmoid')(merged)
+    separated_model = Model(inputs=[force_input, force_input, pose_input], outputs=merged)
+    
+    return separated_model
+
+Model: "functional_115"
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ force_input         │ (None, 800, 1)    │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ pose_input          │ (None, 800, 1)    │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ sequential_12       │ (None, 64)        │    339,072 │ force_input[0][0] │
+│ (Sequential)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ sequential_13       │ (None, 64)        │    119,488 │ force_input[0][0] │
+│ (Sequential)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ sequential_14       │ (None, 16)        │     63,120 │ pose_input[0][0]  │
+│ (Sequential)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ concatenate_3       │ (None, 144)       │          0 │ sequential_12[0]… │
+│ (Concatenate)       │                   │            │ sequential_13[0]… │
+│                     │                   │            │ sequential_14[0]… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_11          │ (None, 144)       │          0 │ concatenate_3[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_22 (Dense)    │ (None, 64)        │      9,280 │ dropout_11[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_23 (Dense)    │ (None, 1)         │         65 │ dense_22[0][0]    │
+└─────────────────────┴───────────────────┴────────────┴───────────────────┘
+ Total params: 1,593,077 (6.08 MB)
+ Trainable params: 531,025 (2.03 MB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 1,062,052 (4.05 MB)
+
+Model Configuration:
+Optimizer: <keras.src.optimizers.adamw.AdamW object at 0x7be268b82380>
+Loss Function: binary_crossentropy
+Learning Rate: <KerasVariable shape=(), dtype=float32, path=adamw/learning_rate>
+
+Train loss: 0.1679605096578598
+Test val_loss: 0.2052241414785385
+Train accuracy: 0.9398396015167236
+Accuracy Score: 0.964
+F1 Score: 0.963265306122449
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.98      0.95      0.96       129
+         1.0       0.95      0.98      0.96       121
+
+    accuracy                           0.96       250
+   macro avg       0.96      0.96      0.96       250
+weighted avg       0.96      0.96      0.96       250
+
+Training History:
+accuracy: [0.5494652390480042, 0.6216577291488647, 0.6377005577087402, 0.7058823704719543, 0.7259358167648315, 0.7379679083824158, 0.7754010558128357, 0.8021390438079834, 0.8048128485679626, 0.8141711354255676, 0.8502673506736755, 0.8863636255264282, 0.894385039806366, 0.903743326663971, 0.9090909361839294, 0.9064171314239502, 0.9010695219039917, 0.9398396015167236]
+loss: [0.6842239499092102, 0.6432411670684814, 0.6065252423286438, 0.5424783229827881, 0.5052343606948853, 0.4755798876285553, 0.43407905101776123, 0.4157194197177887, 0.38571274280548096, 0.3811594545841217, 0.3322313129901886, 0.29015088081359863, 0.23834919929504395, 0.22682000696659088, 0.21662411093711853, 0.216927632689476, 0.21076463162899017, 0.1679605096578598]
+val_accuracy: [0.6240000128746033, 0.5839999914169312, 0.6359999775886536, 0.699999988079071, 0.7319999933242798, 0.7799999713897705, 0.7319999933242798, 0.8159999847412109, 0.8159999847412109, 0.8080000281333923, 0.8199999928474426, 0.8920000195503235, 0.9120000004768372, 0.9399999976158142, 0.8799999952316284, 0.8560000061988831, 0.8920000195503235, 0.9079999923706055]
+val_loss: [0.6534987688064575, 0.6739892363548279, 0.5847752690315247, 0.5254456996917725, 0.46125519275665283, 0.4487915635108948, 0.4325891435146332, 0.37331172823905945, 0.39101094007492065, 0.41724130511283875, 0.35482528805732727, 0.2680869996547699, 0.24166421592235565, 0.2325390875339508, 0.3036220967769623, 0.281065434217453, 0.22917844355106354, 0.2052241414785385]
+
+################################################################################################ 
+

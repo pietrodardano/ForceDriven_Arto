@@ -1,0 +1,97 @@
+def build_SeparatedEASYmodel(F_input_shape, P_input_shape):
+    force_input = Input(shape=F_input_shape, name='force_input')
+    Fbranch = Sequential()
+    Fbranch.add(Conv1D(64, kernel_size=40, activation='relu', input_shape=F_input_shape))
+    Fbranch.add(MaxPooling1D(pool_size=2))
+    Fbranch.add(Conv1D(128, kernel_size=10, activation='relu'))
+    Fbranch.add(MaxPooling1D(pool_size=2))
+    Fbranch.add(Conv1D(256, kernel_size=2, activation='relu'))
+    Fbranch.add(GlobalMaxPooling1D())
+    Fbranch.add(Flatten())
+    Fbranch.add(Dense(32, activation='relu'))
+    outF = Fbranch(force_input)
+    
+    # pose_input = Input(shape=F_input_shape, name='pose_input')
+    # Pbranch = Sequential()
+    # Pbranch.add(Conv1D(64, kernel_size=60, activation='relu', input_shape=P_input_shape))
+    # Pbranch.add(MaxPooling1D(pool_size=2))
+    # Pbranch.add(Conv1D(64, kernel_size=10, activation='relu'))
+    # Pbranch.add(MaxPooling1D(pool_size=2))
+    # Pbranch.add(Flatten())
+    # Pbranch.add(Dense(32, activation='relu'))
+    # outP = Pbranch(pose_input)
+
+
+    pose_input = Input(shape=F_input_shape, name='pose_input')
+    Pbranch = Sequential()
+    Pbranch.add(Conv1D(64, kernel_size=40, activation='relu', input_shape=P_input_shape))
+    Pbranch.add(MaxPooling1D(pool_size=2))
+    Pbranch.add(Conv1D(64, kernel_size=10, activation='relu'))
+    Pbranch.add(MaxPooling1D(pool_size=2))
+    Pbranch.add(Flatten())
+    Pbranch.add(Dense(16, activation='relu'))
+    outP = Pbranch(pose_input)
+    
+    merged = concatenate([outF, outP])
+    merged = Dense(64, activation='relu')(merged)
+    merged = Dense(1, activation='sigmoid')(merged)
+    separated_model = Model(inputs=[force_input, pose_input], outputs=merged)
+    
+    return separated_model
+
+Model: "functional_439"
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ force_input         │ (None, 800, 1)    │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ pose_input          │ (None, 800, 1)    │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ sequential_54       │ (None, 32)        │    158,688 │ force_input[0][0] │
+│ (Sequential)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ sequential_55       │ (None, 16)        │    238,224 │ pose_input[0][0]  │
+│ (Sequential)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ concatenate_19      │ (None, 48)        │          0 │ sequential_54[0]… │
+│ (Concatenate)       │                   │            │ sequential_55[0]… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_103 (Dense)   │ (None, 64)        │      3,136 │ concatenate_19[0… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_104 (Dense)   │ (None, 1)         │         65 │ dense_103[0][0]   │
+└─────────────────────┴───────────────────┴────────────┴───────────────────┘
+ Total params: 1,200,341 (4.58 MB)
+ Trainable params: 400,113 (1.53 MB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 800,228 (3.05 MB)
+
+Model Configuration:
+Optimizer: <keras.src.optimizers.adamw.AdamW object at 0x7d24605e01c0>
+Loss Function: binary_crossentropy
+Learning Rate: <KerasVariable shape=(), dtype=float32, path=adamw/learning_rate>
+
+Train loss: 0.18844138085842133
+Test val_loss: 0.24910631775856018
+Train accuracy: 0.9304812550544739
+Accuracy Score: 0.94
+F1 Score: 0.9372384937238494
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.93      0.95      0.94       129
+         1.0       0.95      0.93      0.94       121
+
+    accuracy                           0.94       250
+   macro avg       0.94      0.94      0.94       250
+weighted avg       0.94      0.94      0.94       250
+
+Training History:
+accuracy: [0.5574866533279419, 0.6831550598144531, 0.7286096215248108, 0.7847593426704407, 0.8155080080032349, 0.8622994422912598, 0.894385039806366, 0.893048107624054, 0.9104278087615967, 0.9117646813392639, 0.8983957171440125, 0.9304812550544739]
+loss: [0.6847214102745056, 0.5721023678779602, 0.5248730778694153, 0.4339137077331543, 0.3593955636024475, 0.3032071590423584, 0.23996448516845703, 0.24775899946689606, 0.21241070330142975, 0.2140781730413437, 0.22444093227386475, 0.18844138085842133]
+val_accuracy: [0.6480000019073486, 0.6679999828338623, 0.7120000123977661, 0.8479999899864197, 0.8679999709129333, 0.8560000061988831, 0.828000009059906, 0.8920000195503235, 0.8920000195503235, 0.8920000195503235, 0.9039999842643738, 0.9200000166893005]
+val_loss: [0.6094008684158325, 0.5467683672904968, 0.5152485370635986, 0.39873871207237244, 0.34045103192329407, 0.3910568356513977, 0.3694267272949219, 0.28681090474128723, 0.28212422132492065, 0.2744619846343994, 0.3079521656036377, 0.24910631775856018]
+
+################################################################################################ 
+

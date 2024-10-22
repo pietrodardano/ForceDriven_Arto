@@ -1,0 +1,272 @@
+def build_MultiBranchModel(F_input_shape, T_input_shape, P_input_shape, S_input_shape_F, S_input_shape_T, num_classes):
+    # 1D Force Branch
+    input_forces_1D = tf.keras.layers.Input(shape=F_input_shape, name='input_forces_1D')
+    conv1_forces_1D = tf.keras.layers.Conv1D(64, kernel_size=40, strides=10, name='conv1_forces_1D')(input_forces_1D)
+    conv1_forces_1D = tf.keras.layers.Activation('relu')(conv1_forces_1D)
+    dropout1_forces_1D = tf.keras.layers.Dropout(0.1)(conv1_forces_1D)
+    conv2_forces_1D = tf.keras.layers.Conv1D(128, kernel_size=20, strides=4, name='conv2_forces_1D')(dropout1_forces_1D)
+    conv2_forces_1D = tf.keras.layers.Activation('relu')(conv2_forces_1D)
+    dropout2_forces_1D = tf.keras.layers.Dropout(0.1)(conv2_forces_1D)
+    pool1_forces_1D = tf.keras.layers.GlobalMaxPooling1D()(dropout2_forces_1D)
+
+    flatten_forces_1D = tf.keras.layers.Flatten()(pool1_forces_1D)
+
+    # 1D Torque Branch
+    input_torques_1D = tf.keras.layers.Input(shape=T_input_shape, name='input_torques_1D')
+    conv1_torques_1D = tf.keras.layers.Conv1D(64, kernel_size=40, strides=10, name='conv1_torques_1D')(input_torques_1D)
+    conv1_torques_1D = tf.keras.layers.Activation('relu')(conv1_torques_1D)
+    dropout1_torques_1D = tf.keras.layers.Dropout(0.1)(conv1_torques_1D)
+    conv2_torques_1D = tf.keras.layers.Conv1D(128, kernel_size=20, strides=4, name='conv2_torques_1D')(dropout1_torques_1D)
+    conv2_torques_1D = tf.keras.layers.Activation('relu')(conv2_torques_1D)
+    dropout2_torques_1D = tf.keras.layers.Dropout(0.1)(conv2_torques_1D)
+    pool1_torques_1D = tf.keras.layers.GlobalMaxPooling1D()(dropout2_torques_1D)
+
+    flatten_torques_1D = tf.keras.layers.Flatten()(pool1_torques_1D)
+
+    # 1D Delta Pose Branch
+    input_deltaPoses_1D = tf.keras.layers.Input(shape=P_input_shape, name='input_deltaPoses_1D')
+    conv1_deltaPoses_1D = tf.keras.layers.Conv1D(64, kernel_size=40, strides=10, name='conv1_deltaPoses_1D')(input_deltaPoses_1D)
+    conv1_deltaPoses_1D = tf.keras.layers.Activation('relu')(conv1_deltaPoses_1D)
+    dropout1_deltaPoses_1D = tf.keras.layers.Dropout(0.1)(conv1_deltaPoses_1D)
+    conv2_deltaPoses_1D = tf.keras.layers.Conv1D(128, kernel_size=20, strides=4, name='conv2_deltaPoses_1D')(dropout1_deltaPoses_1D)
+    conv2_deltaPoses_1D = tf.keras.layers.Activation('relu')(conv2_deltaPoses_1D)
+    dropout2_deltaPoses_1D = tf.keras.layers.Dropout(0.1)(conv2_deltaPoses_1D)
+    pool1_deltaPoses_1D = tf.keras.layers.GlobalMaxPooling1D()(dropout2_deltaPoses_1D)
+
+    flatten_deltaPoses_1D = tf.keras.layers.Flatten()(pool1_deltaPoses_1D)
+
+    # 2D Force Scaleogram Branch
+    input_forces_2D = tf.keras.layers.Input(shape=S_input_shape_F, name='input_forces_2D')
+    conv1_forces_2D = tf.keras.layers.Conv2D(64, kernel_size=(20, 20), strides=(10, 10), padding='same', name='conv1_forces_2D')(input_forces_2D)
+    conv1_forces_2D = tf.keras.layers.Activation('relu')(conv1_forces_2D)
+    dropout1_forces_2D = tf.keras.layers.Dropout(0.1)(conv1_forces_2D)
+    conv2_forces_2D = tf.keras.layers.Conv2D(128, kernel_size=(10, 10), strides=(5, 5), padding='same', name='conv2_forces_2D')(dropout1_forces_2D)
+    conv2_forces_2D = tf.keras.layers.Activation('relu')(conv2_forces_2D)
+    dropout2_forces_2D = tf.keras.layers.Dropout(0.1)(conv2_forces_2D)
+    pool1_forces_2D = tf.keras.layers.GlobalMaxPooling2D()(dropout2_forces_2D)
+
+    flatten_forces_2D = tf.keras.layers.Flatten()(pool1_forces_2D)
+
+    # 2D Torque Scaleogram Branch
+    input_torques_2D = tf.keras.layers.Input(shape=S_input_shape_T, name='input_torques_2D')
+    conv1_torques_2D = tf.keras.layers.Conv2D(64, kernel_size=(20, 20), strides=(10, 10), padding='same', name='conv1_torques_2D')(input_torques_2D)
+    conv1_torques_2D = tf.keras.layers.Activation('relu')(conv1_torques_2D)
+    dropout1_torques_2D = tf.keras.layers.Dropout(0.1)(conv1_torques_2D)
+    conv2_torques_2D = tf.keras.layers.Conv2D(128, kernel_size=(10, 10), strides=(5, 5), padding='same', name='conv2_torques_2D')(dropout1_torques_2D)
+    conv2_torques_2D = tf.keras.layers.Activation('relu')(conv2_torques_2D)
+    dropout2_torques_2D = tf.keras.layers.Dropout(0.1)(conv2_torques_2D)
+    pool1_torques_2D = tf.keras.layers.GlobalMaxPooling2D()(dropout2_torques_2D)
+
+    flatten_torques_2D = tf.keras.layers.Flatten()(pool1_torques_2D)
+
+    # Merge all branches
+    merged = tf.keras.layers.concatenate([
+        flatten_forces_1D, flatten_torques_1D, 
+        flatten_deltaPoses_1D, flatten_forces_2D, flatten_torques_2D
+    ])
+
+    # Fully Connected Layers
+    fc = tf.keras.layers.Dense(128, activation='relu')(merged)
+    fc = tf.keras.layers.Dense(64, activation='relu')(fc)
+    output = tf.keras.layers.Dense(num_classes, activation='softmax')(fc)
+
+    # Define the Model
+    model = tf.keras.Model(
+        inputs=[
+            input_forces_1D, input_torques_1D, 
+            input_deltaPoses_1D, input_forces_2D, input_torques_2D
+        ], 
+        outputs=output, 
+        name='MultiBranchModel'
+    )
+    
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+Model: "MultiBranchModel"
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ input_forces_1D     │ (None, 3000, 3)   │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input_torques_1D    │ (None, 3000, 3)   │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input_deltaPoses_1D │ (None, 3000, 3)   │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input_forces_2D     │ (None, 3000, 384, │          0 │ -                 │
+│ (InputLayer)        │ 1)                │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input_torques_2D    │ (None, 3000, 384, │          0 │ -                 │
+│ (InputLayer)        │ 1)                │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1_forces_1D     │ (None, 297, 64)   │      7,744 │ input_forces_1D[… │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1_torques_1D    │ (None, 297, 64)   │      7,744 │ input_torques_1D… │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1_deltaPoses_1D │ (None, 297, 64)   │      7,744 │ input_deltaPoses… │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1_forces_2D     │ (None, 300, 39,   │     25,664 │ input_forces_2D[… │
+│ (Conv2D)            │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1_torques_2D    │ (None, 300, 39,   │     25,664 │ input_torques_2D… │
+│ (Conv2D)            │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_34       │ (None, 297, 64)   │          0 │ conv1_forces_1D[… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_36       │ (None, 297, 64)   │          0 │ conv1_torques_1D… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_38       │ (None, 297, 64)   │          0 │ conv1_deltaPoses… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_40       │ (None, 300, 39,   │          0 │ conv1_forces_2D[… │
+│ (Activation)        │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_42       │ (None, 300, 39,   │          0 │ conv1_torques_2D… │
+│ (Activation)        │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_10          │ (None, 297, 64)   │          0 │ activation_34[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_12          │ (None, 297, 64)   │          0 │ activation_36[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_14          │ (None, 297, 64)   │          0 │ activation_38[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_16          │ (None, 300, 39,   │          0 │ activation_40[0]… │
+│ (Dropout)           │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_18          │ (None, 300, 39,   │          0 │ activation_42[0]… │
+│ (Dropout)           │ 64)               │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv2_forces_1D     │ (None, 70, 128)   │    163,968 │ dropout_10[0][0]  │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv2_torques_1D    │ (None, 70, 128)   │    163,968 │ dropout_12[0][0]  │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv2_deltaPoses_1D │ (None, 70, 128)   │    163,968 │ dropout_14[0][0]  │
+│ (Conv1D)            │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv2_forces_2D     │ (None, 60, 8,     │    819,328 │ dropout_16[0][0]  │
+│ (Conv2D)            │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv2_torques_2D    │ (None, 60, 8,     │    819,328 │ dropout_18[0][0]  │
+│ (Conv2D)            │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_35       │ (None, 70, 128)   │          0 │ conv2_forces_1D[… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_37       │ (None, 70, 128)   │          0 │ conv2_torques_1D… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_39       │ (None, 70, 128)   │          0 │ conv2_deltaPoses… │
+│ (Activation)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_41       │ (None, 60, 8,     │          0 │ conv2_forces_2D[… │
+│ (Activation)        │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ activation_43       │ (None, 60, 8,     │          0 │ conv2_torques_2D… │
+│ (Activation)        │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_11          │ (None, 70, 128)   │          0 │ activation_35[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_13          │ (None, 70, 128)   │          0 │ activation_37[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_15          │ (None, 70, 128)   │          0 │ activation_39[0]… │
+│ (Dropout)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_17          │ (None, 60, 8,     │          0 │ activation_41[0]… │
+│ (Dropout)           │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_19          │ (None, 60, 8,     │          0 │ activation_43[0]… │
+│ (Dropout)           │ 128)              │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ global_max_pooling… │ (None, 128)       │          0 │ dropout_11[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ global_max_pooling… │ (None, 128)       │          0 │ dropout_13[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ global_max_pooling… │ (None, 128)       │          0 │ dropout_15[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ global_max_pooling… │ (None, 128)       │          0 │ dropout_17[0][0]  │
+│ (GlobalMaxPooling2… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ global_max_pooling… │ (None, 128)       │          0 │ dropout_19[0][0]  │
+│ (GlobalMaxPooling2… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ flatten_15          │ (None, 128)       │          0 │ global_max_pooli… │
+│ (Flatten)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ flatten_16          │ (None, 128)       │          0 │ global_max_pooli… │
+│ (Flatten)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ flatten_17          │ (None, 128)       │          0 │ global_max_pooli… │
+│ (Flatten)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ flatten_18          │ (None, 128)       │          0 │ global_max_pooli… │
+│ (Flatten)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ flatten_19          │ (None, 128)       │          0 │ global_max_pooli… │
+│ (Flatten)           │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ concatenate_6       │ (None, 640)       │          0 │ flatten_15[0][0], │
+│ (Concatenate)       │                   │            │ flatten_16[0][0], │
+│                     │                   │            │ flatten_17[0][0], │
+│                     │                   │            │ flatten_18[0][0], │
+│                     │                   │            │ flatten_19[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_18 (Dense)    │ (None, 128)       │     82,048 │ concatenate_6[0]… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_19 (Dense)    │ (None, 64)        │      8,256 │ dense_18[0][0]    │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_20 (Dense)    │ (None, 4)         │        260 │ dense_19[0][0]    │
+└─────────────────────┴───────────────────┴────────────┴───────────────────┘
+ Total params: 6,887,054 (26.27 MB)
+ Trainable params: 2,295,684 (8.76 MB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 4,591,370 (17.51 MB)
+
+Model Configuration:
+Optimizer: <keras.src.optimizers.adam.Adam object at 0x7f7ae8275c30>
+Loss Function: sparse_categorical_crossentropy
+Learning Rate: <KerasVariable shape=(), dtype=float32, path=adam/learning_rate>
+
+Train loss: 0.19480562210083008
+Test val_loss: 0.30603280663490295
+Train accuracy: 0.9379844665527344
+Accuracy Score: 0.9302325581395349
+F1 Score: 0.93125
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       1.00      1.00      1.00        17
+         1.0       1.00      1.00      1.00        25
+         2.0       0.84      0.91      0.88        23
+         3.0       0.89      0.81      0.85        21
+
+    accuracy                           0.93        86
+   macro avg       0.93      0.93      0.93        86
+weighted avg       0.93      0.93      0.93        86
+
+Training History:
+accuracy: [0.2829457223415375, 0.6627907156944275, 0.7441860437393188, 0.8062015771865845, 0.8527131676673889, 0.8914728760719299, 0.8255813717842102, 0.8875969052314758, 0.9147287011146545, 0.8720930218696594, 0.8759689927101135, 0.8875969052314758, 0.9418604373931885, 0.9147287011146545, 0.9263566136360168, 0.9224806427955627, 0.9263566136360168, 0.9379844665527344, 0.9573643207550049, 0.9418604373931885, 0.930232584476471, 0.9379844665527344]
+loss: [1.7182717323303223, 0.8304688334465027, 0.6786400079727173, 0.5435429811477661, 0.3754799962043762, 0.254556804895401, 0.3355501592159271, 0.2706163823604584, 0.20604220032691956, 0.3586020767688751, 0.39177656173706055, 0.2483929544687271, 0.1843990981578827, 0.2120801955461502, 0.15674737095832825, 0.21461138129234314, 0.16459764540195465, 0.16809232532978058, 0.11331754922866821, 0.1730046570301056, 0.16255542635917664, 0.19480562210083008]
+val_accuracy: [0.5116279125213623, 0.6279069781303406, 0.8023256063461304, 0.8372092843055725, 0.8604651093482971, 0.9186046719551086, 0.8372092843055725, 0.8488371968269348, 0.8837209343910217, 0.8604651093482971, 0.7790697813034058, 0.8488371968269348, 0.8720930218696594, 0.9186046719551086, 0.8837209343910217, 0.8837209343910217, 0.7906976938247681, 0.8139534592628479, 0.8837209343910217, 0.8372092843055725, 0.8604651093482971, 0.895348846912384]
+val_loss: [1.1787298917770386, 1.0644795894622803, 0.5803932547569275, 0.4861689805984497, 0.3513355255126953, 0.28304827213287354, 0.330780565738678, 0.3850034773349762, 0.4122564494609833, 0.3949345350265503, 0.7266801595687866, 0.4680820405483246, 0.22772665321826935, 0.22683534026145935, 0.3106512129306793, 0.25354665517807007, 0.640824019908905, 0.43393000960350037, 0.3911674916744232, 0.338397741317749, 0.3018426299095154, 0.30603280663490295]
+
+################################################################################################ 
+

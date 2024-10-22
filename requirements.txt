@@ -1,0 +1,16 @@
+name: tfenv
+channels:
+  - defaults
+dependencies:
+  - python=3.10.14
+  - numpy
+  - pandas
+  - pip
+  - pip:
+    - tensorflow
+    - pywavelets
+    - scipy
+    - pyparsing
+    - scikit-learn
+    - matplotlib
+
