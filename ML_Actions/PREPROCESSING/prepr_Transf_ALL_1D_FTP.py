@@ -3,7 +3,7 @@ import pandas as pd
 import numpy  as np
 
 import sys
-sys.path.append('/home/rl_sim/thesis_ws/src/ML/UTILITIES')
+sys.path.append('/home/rl_sim/TACTILEDRIVEN_ARTO/UTILITIES')
 from PreProcessingFunctions import myfilter, num_transient, sliding_sum_window, select_index, add_padding, do_wavelet, pad_signal_with_noise
 from PreProcessingFunctions import WS, WS_B
 from PreProcessingFunctions import rename_and_convert_to_txt
@@ -12,8 +12,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from scipy.signal import butter, filtfilt
 from scipy.spatial.transform import Rotation as R
 
-data_folder = '/home/rl_sim/thesis_ws/src/ML_ACTIONS/DATA/1D_TRANSF_FLAP_FTP_NotNorm/'
-folder_path = "/home/rl_sim/thesis_ws/src/ROBOT_ACTIONS_DATA/FLAP/"
+data_folder = '/home/rl_sim/TACTILEDRIVEN_ARTO/ML_ACTIONS/DATA/1D_TRANSF_FLAP_FTP_NotNorm/'
+folder_path = "/home/rl_sim/TACTILEDRIVEN_ARTO/ROBOT_ACTIONS_DATA/SPEED/"
 
 target_length = 1800
 """

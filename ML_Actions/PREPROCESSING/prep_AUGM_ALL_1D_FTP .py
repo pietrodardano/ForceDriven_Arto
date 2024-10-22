@@ -4,7 +4,7 @@ import numpy  as np
 import random
 
 import sys
-sys.path.append('/home/rl_sim/thesis_ws/src/ML/UTILITIES')
+sys.path.append('/home/rl_sim/TACTILEDRIVEN_ARTO/UTILITIES')
 from PreProcessingFunctions import myfilter, num_transient, sliding_sum_window, select_index, add_padding, do_wavelet, pad_signal_with_noise
 from PreProcessingFunctions import WS, WS_B
 from PreProcessingFunctions import rename_and_convert_to_txt
@@ -12,8 +12,8 @@ from PreProcessingFunctions import rename_and_convert_to_txt
 from sklearn.preprocessing import StandardScaler
 from scipy.signal import butter, filtfilt, resample
 
-data_folder = '/home/rl_sim/thesis_ws/src/ML_ACTIONS/DATA/1D_AUGMnostr_SPEED_FTP_ScalNorm/'
-folder_path = "/home/rl_sim/thesis_ws/src/ROBOT_ACTIONS_DATA/SPEED/"
+data_folder = '/home/rl_sim/TACTILEDRIVEN_ARTO/ML_Actions/DATA/1D_AUGMnostr_SPEED_FTP_ScalNorm/'
+folder_path = "/home/rl_sim/TACTILEDRIVEN_ARTO/ROBOT_ACTIONS_DATA/SPEED/"
 
 """
 LDG     -> 3000
