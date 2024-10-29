@@ -3,7 +3,7 @@ import pandas as pd
 import numpy  as np
 
 import sys
-sys.path.append('/home/rl_sim/TACTILEDRIVEN_ARTO/UTILITIES')
+sys.path.append('/home/rl_sim/TactileDriven_Arto/UTILITIES')
 from PreProcessingFunctions import myfilter, num_transient, sliding_sum_window, select_index, add_padding, do_wavelet, pad_signal_with_noise
 from PreProcessingFunctions import WS, WS_B
 from PreProcessingFunctions import rename_and_convert_to_txt
@@ -12,10 +12,10 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from scipy.signal import butter, filtfilt
 from scipy.spatial.transform import Rotation as R
 
-data_folder = '/home/rl_sim/TACTILEDRIVEN_ARTO/ML_ACTIONS/DATA/1D_TRANSF_FLAP_FTP_NotNorm/'
-folder_path = "/home/rl_sim/TACTILEDRIVEN_ARTO/ROBOT_ACTIONS_DATA/SPEED/"
+data_folder = '/home/rl_sim/TactileDriven_Arto/ML_Actions/DATA/1D_TRANSF_LDG_FTP_ScalNorm/'
+folder_path = "/home/rl_sim/TactileDriven_Arto/ROBOT_ACTIONS_DATA/LDG/"
 
-target_length = 1800
+target_length = 3000
 """
 LDG     -> 3000
 FLAP    -> 1800
@@ -49,17 +49,14 @@ def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonor
     filt_signal = myfilter(padded_signal, cutoff_freq)
 
     # Normalize the signal
-    mean = np.mean(filt_signal)
-    if tonorm == 1 and mean != 0:
-        normalized_signal = filt_signal / mean  # Mean normalization
+    if tonorm == 1:
+        normalized_signal = filt_signal
     elif tonorm == 2:
         signal_scaler = StandardScaler()
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()  # Standard scaling
     elif tonorm == 3:
         signal_scaler = MinMaxScaler()
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()
-    else:
-        normalized_signal = filt_signal
 
     return normalized_signal
 
@@ -113,7 +110,7 @@ def preprocess_data(data):
         delta_poses = []
         for col in ['Pose_X', 'Pose_Y', 'Pose_Z']:
             delta_pose = np.abs(data[col].iloc[0] - data[col])
-            delta_pose = preprocess_signal(delta_pose.to_numpy(), cutoff_freq=15)
+            delta_pose = preprocess_signal(delta_pose.to_numpy(), cutoff_freq=30)
             delta_poses.append(delta_pose)
 
         # Stack the signals along the third axis
