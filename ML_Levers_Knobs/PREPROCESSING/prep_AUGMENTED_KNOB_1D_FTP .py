@@ -12,11 +12,11 @@ from PreProcessingFunctions import rename_and_convert_to_txt
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from scipy.signal import butter, filtfilt, resample
 
-data_folder = '/home/rl_sim/TactileDriven_Arto/ML_Levers_Knobs/DATA/1D_AUGM_KNOB_FTP_MinMaxNorm/'
+data_folder = '/home/rl_sim/TactileDriven_Arto/ML_Levers_Knobs/DATA/1D_AUGM_KNOB_TRANSF_ScalNorm/'
 folder_path = "/home/rl_sim/TactileDriven_Arto/ROBOT_ACTIONS_DATA/KNOB/"
 
 target_length = 2000
-TONORM = 3
+TONORM = 2
 
 ADD_NOISE = True
 TIME_STRETCH = False # CHECK IT
@@ -57,8 +57,8 @@ def apply_augmentation(signal, augmentations):
     for aug in augmentations:
         augmented_signal = aug(augmented_signal)
     return augmented_signal
-target_length = 2000
-def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonorm=2):
+
+def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonorm=TONORM):
     filtered_signal = myfilter(signal, cutoff_freq)
     if len(signal) < target_length:
         padding_length = target_length - len(signal)
@@ -76,15 +76,12 @@ def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonor
 
     filt_signal = myfilter(padded_signal, cutoff_freq)
     
-    mean = np.mean(filt_signal)
-    if tonorm == 1 and mean != 0:     
-        # MEAN NORMALIZATION
-        normalized_signal = filt_signal / mean
-    elif tonorm == 2:
+
+    if tonorm == 2:
         # NORMALIZATION using StandardScaler
         signal_scaler = StandardScaler()
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()
-    elif tonorm == 3:
+    elif tonorm == 1:
         # NORMALIZATION using MinMaxScaler
         signal_scaler = MinMaxScaler()
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()

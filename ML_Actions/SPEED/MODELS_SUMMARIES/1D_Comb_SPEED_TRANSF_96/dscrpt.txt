@@ -1,0 +1,207 @@
+Building Function:
+def build_branched_model(input_shape1, input_shape2, input_shape3, input_shape4):
+    # First input branch
+    input1 = Input(shape=input_shape1, name='input1')
+    x1 = Conv1D(filters=64, kernel_size=20, strides=4, activation='relu', name='conv1d_1_1')(input1)
+    x1 = MaxPooling1D(pool_size=2)(x1)
+    x1 = Conv1D(filters=128, kernel_size=16, strides=4, activation='relu', name='conv1d_1_2')(x1)
+    x1 = Dropout(rate=0.1)(x1)
+    x1 = Conv1D(filters=128, kernel_size=8, activation='relu', name='conv1d_1_3')(x1)
+    x1 = MaxPooling1D(pool_size=2)(x1)
+    x1 = Conv1D(filters=256, kernel_size=4, activation='relu', name='conv1d_1_4')(x1)
+    x1 = GlobalMaxPooling1D(name='gap1d_1_1')(x1)
+    
+    # Second input branch
+    input2 = Input(shape=input_shape2, name='input2')
+    x2 = Conv1D(filters=64, kernel_size=20, strides=4, activation='relu', name='conv1d_2_1')(input2)
+    x2 = MaxPooling1D(pool_size=2)(x2)
+    x2 = Conv1D(filters=128, kernel_size=16, strides=4, activation='relu', name='conv1d_2_2')(x2)
+    x2 = Dropout(rate=0.1)(x2)
+    x2 = Conv1D(filters=128, kernel_size=8, activation='relu', name='conv1d_2_3')(x2)
+    x2 = MaxPooling1D(pool_size=2)(x2)
+    x2 = Conv1D(filters=64, kernel_size=4, activation='relu', name='conv1d_2_4')(x2)
+    x2 = GlobalMaxPooling1D(name='gap1d_2_1')(x2)
+    
+    # Third input branch
+    input3 = Input(shape=input_shape3, name='input3')
+    x3 = Conv1D(filters=64, kernel_size=20, strides=4, activation='relu', name='conv1d_3_1')(input3)
+    x3 = MaxPooling1D(pool_size=2)(x3)
+    x3 = Conv1D(filters=128, kernel_size=16, strides=4, activation='relu', name='conv1d_3_2')(x3)
+    x3 = Dropout(rate=0.1)(x3)
+    x3 = Conv1D(filters=128, kernel_size=8, activation='relu', name='conv1d_3_3')(x3)
+    x3 = MaxPooling1D(pool_size=2)(x3)
+    x3 = Conv1D(filters=256, kernel_size=4, activation='relu', name='conv1d_3_4')(x3)
+    x3 = GlobalMaxPooling1D(name='gap1d_3_1')(x3)
+    
+    # Fourth input branch
+    input4 = Input(shape=input_shape4, name='input4')
+    x4 = Conv1D(filters=64, kernel_size=20, strides=4, activation='relu', name='conv1d_4_1')(input4)
+    x4 = MaxPooling1D(pool_size=2)(x4)
+    x4 = Conv1D(filters=128, kernel_size=16, strides=4, activation='relu', name='conv1d_4_2')(x4)
+    x4 = Dropout(rate=0.1)(x4)
+    x4 = Conv1D(filters=128, kernel_size=8, activation='relu', name='conv1d_4_3')(x4)
+    x4 = MaxPooling1D(pool_size=2)(x4)
+    x4 = Conv1D(filters=64, kernel_size=4, activation='relu', name='conv1d_4_4')(x4)
+    x4 = GlobalMaxPooling1D(name='gap1d_4_1')(x4)
+    
+    # Concatenate the outputs of the four branches
+    merged = concatenate([x1, x2, x3, x4], name='concatenate_1')
+    
+    # Dense layers
+    dense = Dense(64, activation='relu', name='dense_1')(merged)
+    #dense = Dense(16, activation='relu', name='dense_2')(dense)
+    
+    # Output layer for 4-class classification (adjust if needed)
+    output = Dense(OUT_N, activation='softmax', name='output')(dense)
+    
+    model = Model(inputs=[input1, input2, input3, input4], outputs=output)
+    return model
+
+
+Assign and Deploy Variables Function:
+def assign_and_deploy_variables(data_dict):
+    for key, data in data_dict.items():
+        globals()[f"{key}1"] = np.dstack((data[:, :, 1], data[:, :, 4]))
+        globals()[f"{key}2"] = data[:, :, 1]
+        globals()[f"{key}3"] = np.dstack((data[:, :, 2], data[:, :, 5]))
+        globals()[f"{key}4"] = np.dstack((data[:, :, 6], data[:, :, 7], data[:, :, 8]))
+
+
+Model: "functional_20"
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ input1 (InputLayer) │ (None, 1800, 2)   │          0 │ -                 │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input2 (InputLayer) │ (None, 1800, 1)   │          0 │ -                 │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input3 (InputLayer) │ (None, 1800, 2)   │          0 │ -                 │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ input4 (InputLayer) │ (None, 1800, 3)   │          0 │ -                 │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_1_1 (Conv1D) │ (None, 446, 64)   │      2,624 │ input1[0][0]      │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_2_1 (Conv1D) │ (None, 446, 64)   │      1,344 │ input2[0][0]      │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_3_1 (Conv1D) │ (None, 446, 64)   │      2,624 │ input3[0][0]      │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_4_1 (Conv1D) │ (None, 446, 64)   │      3,904 │ input4[0][0]      │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d       │ (None, 223, 64)   │          0 │ conv1d_1_1[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_2     │ (None, 223, 64)   │          0 │ conv1d_2_1[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_4     │ (None, 223, 64)   │          0 │ conv1d_3_1[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_6     │ (None, 223, 64)   │          0 │ conv1d_4_1[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_1_2 (Conv1D) │ (None, 52, 128)   │    131,200 │ max_pooling1d[0]… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_2_2 (Conv1D) │ (None, 52, 128)   │    131,200 │ max_pooling1d_2[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_3_2 (Conv1D) │ (None, 52, 128)   │    131,200 │ max_pooling1d_4[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_4_2 (Conv1D) │ (None, 52, 128)   │    131,200 │ max_pooling1d_6[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout (Dropout)   │ (None, 52, 128)   │          0 │ conv1d_1_2[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_1 (Dropout) │ (None, 52, 128)   │          0 │ conv1d_2_2[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_2 (Dropout) │ (None, 52, 128)   │          0 │ conv1d_3_2[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dropout_3 (Dropout) │ (None, 52, 128)   │          0 │ conv1d_4_2[0][0]  │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_1_3 (Conv1D) │ (None, 45, 128)   │    131,200 │ dropout[0][0]     │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_2_3 (Conv1D) │ (None, 45, 128)   │    131,200 │ dropout_1[0][0]   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_3_3 (Conv1D) │ (None, 45, 128)   │    131,200 │ dropout_2[0][0]   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_4_3 (Conv1D) │ (None, 45, 128)   │    131,200 │ dropout_3[0][0]   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_1     │ (None, 22, 128)   │          0 │ conv1d_1_3[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_3     │ (None, 22, 128)   │          0 │ conv1d_2_3[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_5     │ (None, 22, 128)   │          0 │ conv1d_3_3[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ max_pooling1d_7     │ (None, 22, 128)   │          0 │ conv1d_4_3[0][0]  │
+│ (MaxPooling1D)      │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_1_4 (Conv1D) │ (None, 19, 256)   │    131,328 │ max_pooling1d_1[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_2_4 (Conv1D) │ (None, 19, 64)    │     32,832 │ max_pooling1d_3[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_3_4 (Conv1D) │ (None, 19, 256)   │    131,328 │ max_pooling1d_5[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ conv1d_4_4 (Conv1D) │ (None, 19, 64)    │     32,832 │ max_pooling1d_7[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ gap1d_1_1           │ (None, 256)       │          0 │ conv1d_1_4[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ gap1d_2_1           │ (None, 64)        │          0 │ conv1d_2_4[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ gap1d_3_1           │ (None, 256)       │          0 │ conv1d_3_4[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ gap1d_4_1           │ (None, 64)        │          0 │ conv1d_4_4[0][0]  │
+│ (GlobalMaxPooling1… │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ concatenate_1       │ (None, 640)       │          0 │ gap1d_1_1[0][0],  │
+│ (Concatenate)       │                   │            │ gap1d_2_1[0][0],  │
+│                     │                   │            │ gap1d_3_1[0][0],  │
+│                     │                   │            │ gap1d_4_1[0][0]   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ dense_1 (Dense)     │ (None, 64)        │     41,024 │ concatenate_1[0]… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ output (Dense)      │ (None, 4)         │        260 │ dense_1[0][0]     │
+└─────────────────────┴───────────────────┴────────────┴───────────────────┘
+ Total params: 4,289,102 (16.36 MB)
+ Trainable params: 1,429,700 (5.45 MB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 2,859,402 (10.91 MB)
+
+Model Configuration:
+Optimizer: <keras.src.optimizers.adam.Adam object at 0x7f83b17615a0>
+Loss Function: sparse_categorical_crossentropy
+Learning Rate: <KerasVariable shape=(), dtype=float32, path=adam/learning_rate>
+
+Train loss: 0.2659936249256134
+Test val_loss: 0.3211326003074646
+Train accuracy: 0.8888888955116272
+Accuracy Score: 0.956989247311828
+F1 Score: 0.9519450800915332
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       1.00      1.00      1.00        29
+         1.0       1.00      1.00      1.00        22
+         2.0       0.88      0.95      0.91        22
+         3.0       0.94      0.85      0.89        20
+
+    accuracy                           0.96        93
+   macro avg       0.95      0.95      0.95        93
+weighted avg       0.96      0.96      0.96        93
+
+Training History:
+accuracy: [0.36917561292648315, 0.684587836265564, 0.7849462628364563, 0.7275985479354858, 0.8172042965888977, 0.8207885026931763, 0.8279569745063782, 0.8530465960502625, 0.8673835396766663, 0.8673835396766663, 0.9032257795333862, 0.8673835396766663, 0.8817204236984253, 0.8960573673248291, 0.9211469292640686, 0.9211469292640686, 0.8745519518852234, 0.8888888955116272, 0.8888888955116272]
+loss: [1.291517972946167, 0.7797264456748962, 0.6381338238716125, 0.5909292697906494, 0.47994551062583923, 0.48707717657089233, 0.46342286467552185, 0.3768722414970398, 0.31953099370002747, 0.26889660954475403, 0.24260030686855316, 0.2466600239276886, 0.24961289763450623, 0.20874996483325958, 0.17070350050926208, 0.20987141132354736, 0.3142152726650238, 0.30189409852027893, 0.2659936249256134]
+val_accuracy: [0.6129032373428345, 0.7204301357269287, 0.6236559152603149, 0.7204301357269287, 0.8494623899459839, 0.7526881694793701, 0.7849462628364563, 0.8602150678634644, 0.8494623899459839, 0.8602150678634644, 0.9139785170555115, 0.8494623899459839, 0.8709677457809448, 0.8817204236984253, 0.8602150678634644, 0.7634408473968506, 0.7419354915618896, 0.8602150678634644, 0.8924731016159058]
+val_loss: [1.0337350368499756, 0.7395339608192444, 0.8577747941017151, 0.6223481297492981, 0.3751008212566376, 0.7363826632499695, 0.4616681635379791, 0.3161768615245819, 0.3447156846523285, 0.39939650893211365, 0.2384415864944458, 0.37170541286468506, 0.32088035345077515, 0.3228701651096344, 0.3288552761077881, 0.5821372270584106, 0.6643994450569153, 0.38346588611602783, 0.3211326003074646]
+
+Confusion Matrix:
+[[29  0  0  0]
+ [ 0 22  0  0]
+ [ 0  0 21  1]
+ [ 0  0  3 17]]
+
+################################################################################################ 
+
