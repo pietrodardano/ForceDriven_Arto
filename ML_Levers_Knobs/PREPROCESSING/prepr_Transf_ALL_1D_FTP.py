@@ -48,7 +48,6 @@ def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonor
     filt_signal = myfilter(padded_signal, cutoff_freq)
 
     # Normalize the signal
-    mean = np.mean(filt_signal)
     if tonorm == 1:
         normalized_signal = filt_signal
     elif tonorm == 2:
