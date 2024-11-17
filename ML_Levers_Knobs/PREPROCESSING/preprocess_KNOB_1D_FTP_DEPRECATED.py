@@ -38,16 +38,15 @@ def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonor
     filt_signal = myfilter(padded_signal, cutoff_freq)
     #print(f"Original: {len(signal)}, Padded: {len(filt_signal)}, FLAG={flag}")
     
-    mean = np.mean(filt_signal)
-    if tonorm==1 and mean != 0:     
-        #  MEAN NORMALIZATION
-        normalized_signal = filt_signal /mean
-    elif tonorm == 2:
-        # NORMALIZATION using StandardScaler
-        signal_scaler = StandardScaler()
-        normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()
-    else: 
+    # Normalize the signal
+    if tonorm == 1:
         normalized_signal = filt_signal
+    elif tonorm == 2:
+        signal_scaler = StandardScaler()
+        normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()  # Standard scaling
+    elif tonorm == 3:
+        signal_scaler = MinMaxScaler(feature_range=(-1, 1))
+        normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()
 
 
     return normalized_signal
