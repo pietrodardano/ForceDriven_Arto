@@ -49,16 +49,14 @@ def preprocess_signal(signal, cutoff_freq=30, target_length=target_length, tonor
 
     # Normalize the signal
     mean = np.mean(filt_signal)
-    if tonorm == 1 and mean != 0:
-        normalized_signal = filt_signal / mean  # Mean normalization
+    if tonorm == 1:
+        normalized_signal = filt_signal
     elif tonorm == 2:
         signal_scaler = StandardScaler()
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()  # Standard scaling
     elif tonorm == 3:
         signal_scaler = MinMaxScaler(feature_range=(-1, 1))
         normalized_signal = signal_scaler.fit_transform(filt_signal.reshape(-1, 1)).flatten()
-    else:
-        normalized_signal = filt_signal
 
     return normalized_signal
 
