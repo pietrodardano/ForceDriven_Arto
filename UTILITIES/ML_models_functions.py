@@ -110,20 +110,3 @@ def to_save_model(model, history, loss, accuracy, f1, model_name, y_test, y_pred
     # Check if model performance is better than the saved one
     
     save_summary_and_results(model, history, loss, accuracy, f1, model_name, y_test, y_pred_binary, building_function)
-    
-    # if not os.path.exists(f"MODELS_SUMMARIES/{model_name}/dscrpt.txt"):
-    #     # If no saved model exists, save the current model's summary and results
-    #     save_summary_and_results(model, history, loss, accuracy, f1, model_name, y_test, y_pred_binary, building_function)    
-    # else:
-    #     # If saved model exists, compare the performance and structure
-    #     with open(f"MODELS_SUMMARIES/{model_name}/dscrpt.txt", "r") as file:
-    #         lines = file.readlines()
-    #         saved_accuracy = float(lines[9].split(":")[1].strip())
-    #         saved_f1 = float(lines[10].split(":")[1].strip())
-    #         saved_structure = "".join(lines[:9])  # Extract saved model structure
-
-    #     current_structure = inspect.getsource(building_function)  # Get current model structure
-        
-    #     if is_better_performance(accuracy, f1, saved_accuracy, saved_f1) or current_structure != saved_structure:
-    #         # If current performance is better or structure has changed, overwrite the saved description
-    #         save_summary_and_results(model, history, loss, accuracy, f1, model_name, y_test, y_pred_binary, building_function)

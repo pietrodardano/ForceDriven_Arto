@@ -1,1 +1,0 @@
-Timestamp,Pose_X,Pose_Y,Pose_Z,Pose_Rx,Pose_Ry,Pose_Rz,Force_X,Force_Y,Force_Z,Torque_X,Torque_Y,Torque_Z,Q_w1,Q_w2,Q_w3
