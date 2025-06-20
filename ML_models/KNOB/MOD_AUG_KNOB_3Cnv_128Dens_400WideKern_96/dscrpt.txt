@@ -3,10 +3,7 @@ def build_branched_model(input_shapes):
     def create_branch(input_shape, branch_id):
         input_layer = Input(shape=input_shape, name=f'input{branch_id}')
         x = Conv1D(filters=128, kernel_size=400, strides=100, activation='relu', padding='same', name=f'conv1d_{branch_id}_1')(input_layer)
-        #x = MaxPooling1D(pool_size=2)(x)
         x = Conv1D(filters=128, kernel_size=16, strides=2, activation='relu', name=f'conv1d_{branch_id}_2')(x)
-        #x = Conv1D(filters=128, kernel_size=4, strides=2, activation='relu', name=f'conv1d_{branch_id}_3')(x)
-        #x = MaxPooling1D(pool_size=4)(x)
         x = Dropout(rate=0.3, name=f'dropout_{branch_id}_1')(x)
         x = Conv1D(filters=256, kernel_size=2, strides=1, activation='relu', name=f'conv1d_{branch_id}_4')(x)
         x = GlobalMaxPooling1D(name=f'gap1d_{branch_id}_1')(x)

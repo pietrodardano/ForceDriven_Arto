@@ -58,7 +58,3 @@ def plot_f1_score_threshold(y_test, y_pred):
     plt.title('F1 Score vs. Threshold')
     plt.grid(True)
     plt.show()
-
-#plot_confusion_matrix(y_test, y_pred_binary)
-#plot_roc_curve(y_test, y_pred)
-#plot_precision_recall_curve(y_test, y_pred)

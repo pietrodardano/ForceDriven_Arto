@@ -5,19 +5,15 @@ def build_SeparatedEASYmodel(input_shape1, input_shape2, input_shape3):
     x1 = Conv1D(128, kernel_size=40, strides=8, activation='relu', name='conv1d_1_1')(input1)
     x1 = MaxPooling1D(pool_size=2, name='maxpool1d_1_1')(x1)
     x1 = Conv1D(128, kernel_size=20, strides=2, activation='relu', name='conv1d_1_2')(x1)
-    #x1 = MaxPooling1D(pool_size=2, name='maxpool1d_1_2')(x1)
     x1 = Conv1D(256, kernel_size=4, activation='relu', name='conv1d_1_3')(x1)
     x1 = GlobalMaxPooling1D(name='globalmaxpool1d_1_1')(x1)
-    #x1 = Dense(128, activation='relu', name='dense_1_1')(x1)
     x1 = Dropout(0.2, name='dropout_1_1')(x1)
     out1 = Dense(64, activation='relu', name='dense_1_2')(x1)
 
     # Second input branch
     input2 = Input(shape=input_shape2, name='input2')
     x2 = Conv1D(128, kernel_size=2, activation='relu', name='conv1d_2_1')(input2)
-    #x2 = MaxPooling1D(pool_size=2, name='maxpool1d_2_1')(x2)
     x2 = Conv1D(64, kernel_size=8, strides=2, activation='relu', name='conv1d_2_2')(x2)
-    #x2 = MaxPooling1D(pool_size=2, name='maxpool1d_2_2')(x2)
     x2 = Conv1D(128, kernel_size=4, activation='relu', name='conv1d_2_3')(x2)
     x2 = Conv1D(64, kernel_size=2, activation='relu', name='conv1d_2_4')(x2)
     x2 = GlobalMaxPooling1D(name='globalmaxpool1d_2_1')(x2)
@@ -27,10 +23,7 @@ def build_SeparatedEASYmodel(input_shape1, input_shape2, input_shape3):
     # Third input branch
     input3 = Input(shape=input_shape3, name='input3')
     x3 = Conv1D(64, kernel_size=40, strides=10, activation='relu', name='conv1d_3_1')(input3)
-    #x3 = MaxPooling1D(pool_size=2, name='maxpool1d_3_1')(x3)
     x3 = Conv1D(64, kernel_size=10, activation='relu', name='conv1d_3_2')(x3)
-    # x3 = MaxPooling1D(pool_size=2, name='maxpool1d_3_2')(x3)
-    # x3 = Flatten(name='flatten_3_1')(x3)
     x3 = GlobalMaxPooling1D(name = 'globalmaxpool1d_3_1')(x3)
     out3 = Dense(64, activation='relu', name='dense_3_1')(x3)
 
